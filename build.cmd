@@ -1,1 +1,0 @@
-zig build-exe -OReleaseSmall -fsingle-threaded .\day01.zig

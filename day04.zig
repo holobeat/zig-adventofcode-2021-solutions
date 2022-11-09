@@ -108,6 +108,7 @@ const Slot = struct {
 
 const Board = struct {
     slots: [25]Slot,
+    complete: bool = false,
 
     pub fn checkWinWith(self: *Board, number: u8) ?usize {
         const rs = [_]u8{ 0, 5, 10, 15, 20 };
@@ -119,7 +120,10 @@ const Board = struct {
             while (x < 5) : (x += 1) {
                 if (self.slots[i + x].marked) mc += 1;
             }
-            if (mc == 5) return self.sumUnmarked() * number;
+            if (mc == 5) {
+                self.complete = true;
+                return self.sumUnmarked() * number;
+            }
             mc = 0;
         }
         // winning column check
@@ -131,7 +135,10 @@ const Board = struct {
                     mc += 1;
                 }
             }
-            if (mc == 5) return self.sumUnmarked() * number;
+            if (mc == 5) {
+                self.complete = true;
+                return self.sumUnmarked() * number;
+            }
             mc = 0;
             col += 1;
         }
@@ -146,7 +153,11 @@ const Board = struct {
         return c;
     }
 
-    pub fn result() usize {}
+    pub fn reset(self: *Board) void {
+        for (self.slots) |*s| {
+            s.*.marked = false;
+        }
+    }
 };
 
 const DrawNumbers = struct {
@@ -186,6 +197,22 @@ fn nextBoard(comptime T: type, iter: *std.mem.SplitIterator(T)) !?Board {
     return null;
 }
 
+fn printBoard(board: Board) void {
+    var r: u8 = 0;
+    for (board.slots) |s| {
+        r += 1;
+        print(
+            "{s:2}{d:2} |{s}",
+            .{
+                if (s.marked) "*" else " ",
+                s.number,
+                if (r == 5) "\n" else "",
+            },
+        );
+        if (r == 5) r = 0;
+    }
+}
+
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
 
@@ -205,37 +232,45 @@ pub fn main() !void {
         boards.append(board) catch unreachable;
     }
 
+    print("\n--- PART 1 ---\n", .{});
     // update the boards with the drawn numbers
     update: for (draw.numbers.items) |n| {
         for (boards.items) |*board| {
-            for (board.*.slots) |*slot| {
+            for (board.slots) |*slot| {
                 if (n == slot.number) {
-                    slot.*.marked = true;
+                    slot.marked = true;
                     if (board.checkWinWith(n)) |result| {
                         print("\nWinning board:\n", .{});
                         printBoard(board.*);
-                        print("\nSolution: {d}\n", .{ result });
+                        print("\nSolution: {d}\n", .{result});
                         break :update;
                     }
                 }
             }
         }
     }
-    print("\n", .{});
-}
 
-fn printBoard(board: Board) void {
-    var r: u8 = 0;
-    for (board.slots) |s| {
-        r += 1;
-        print(
-            "{s:2}{d:2} |{s}",
-            .{
-                if (s.marked) "*" else " ",
-                s.number,
-                if (r == 5) "\n" else "",
-            },
-        );
-        if (r == 5) r = 0;
+    for (boards.items) |*board| board.reset();
+
+    print("\n--- PART 2 ---\n", .{});
+    var lastWinningBoard: *Board = undefined;
+    var lastWinningResult: usize = 0;
+    // update the boards with the drawn numbers
+    for (draw.numbers.items) |n| {
+        for (boards.items) |*board| {
+            if (board.complete) continue;
+            for (board.slots) |*slot| {
+                if (n == slot.number) {
+                    slot.marked = true;
+                    if (board.checkWinWith(n)) |result| {
+                        lastWinningBoard = board;
+                        lastWinningResult = result;
+                    }
+                }
+            }
+        }
     }
+    print("\nLast Winning board:\n", .{});
+    printBoard(lastWinningBoard.*);
+    print("\nSolution: {d}\n", .{lastWinningResult});
 }

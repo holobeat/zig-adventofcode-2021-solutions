@@ -24,7 +24,6 @@ pub fn main() !void {
     var data = ArrayList(u32).init(allocator);
     defer data.deinit();
 
-    // PART 1
     while (lines.next()) |c| {
         if (c.len == 0) continue;
         var n = try std.fmt.parseInt(u32, std.mem.trim(u8, c, "\n"), 10);

@@ -4,11 +4,6 @@ const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const utils = @import("utils.zig");
 
-fn printArray(items: []u32) void {
-    for (items) |n| print("{d} ", .{n});
-    print("\n", .{});
-}
-
 fn part2Fuel(steps: u32) u32 {
     var i: u32 = 1;
     var f: u32 = 0;
@@ -42,9 +37,8 @@ pub fn main() !void {
 
     // PART 1
     {
-        var distance: u32 = 0xFFFFFFFF;
+        var fuel: u32 = 0xFFFFFFFF;
         var prev_n: u32 = undefined;
-        var best_n: u32 = undefined;
         var n: u32 = 0;
 
         while (n <= max_n) : (n += 1) {
@@ -55,22 +49,18 @@ pub fn main() !void {
                         d += if (k < n) n - k else k - n;
                     }
                 }
-                if (d < distance) {
-                    distance = d;
-                    best_n = n;
-                }
+                if (d < fuel) fuel = d;
             }
             prev_n = n;
         }
 
-        print("Solution part 1: {d}\n", .{distance});
+        print("Solution part 1: {d}\n", .{fuel});
     }
 
     // PART 2
     {
-        var distance: u32 = 0xFFFFFFFF;
+        var fuel: u32 = 0xFFFFFFFF;
         var prev_n: u32 = undefined;
-        var best_n: u32 = undefined;
         var n: u32 = 0;
 
         while (n <= max_n) : (n += 1) {
@@ -81,14 +71,11 @@ pub fn main() !void {
                         d += part2Fuel(if (k < n) n - k else k - n);
                     }
                 }
-                if (d < distance) {
-                    distance = d;
-                    best_n = n;
-                }
+                if (d < fuel) fuel = d;
             }
             prev_n = n;
         }
 
-        print("Solution part 2: {d}\n", .{distance});
+        print("Solution part 2: {d}\n", .{fuel});
     }
 }
